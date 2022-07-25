@@ -6,7 +6,7 @@ The objective is to develop a movement classification sensor on an arduino board
 
 - by sending the events through an MQTT topic
 - by sending events with Coap protocol (pub/sub mode)
-- by wrapping it as a "Web Thing" using the WebThings interoperability paradigm, and monitoring it via a WebThings gateway (available as Docker container, or installed on a Raspberry pi)
+- by wrapping it as a "Web Thing" using the WebThings interoperability framework, and monitoring it via a WebThings gateway (available as Docker container, or installed on a Raspberry pi)
 
 
 ### Required hardware:
