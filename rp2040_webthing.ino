@@ -1,27 +1,13 @@
 /*
-  ArduinoMqttClient - WiFi Simple Sender
+  rp2040_webthing - final project of Enabling Technologies for IIoT Summer School, 2022
+  
+  Required hardware:
+  - Arduino Nano rp2040 connect
 
-  This example connects to a MQTT broker and publishes a message to
-  a topic once a second.
-
-  The circuit:
-  - Arduino MKR 1000, MKR 1010 or Uno WiFi Rev2 board
-
-  This example code is in the public domain.
+  Author: Lino Mediavilla
 */
 
 #include <ArduinoMqttClient.h>
-/*
-#if defined(ARDUINO_SAMD_MKRWIFI1010) || defined(ARDUINO_SAMD_NANO_33_IOT) || defined(ARDUINO_AVR_UNO_WIFI_REV2)
-  #include <WiFiNINA.h>
-#elif defined(ARDUINO_SAMD_MKR1000)
-  #include <WiFi101.h>
-#elif defined(ARDUINO_ARCH_ESP8266)
-  #include <ESP8266WiFi.h>
-#elif defined(ARDUINO_ARCH_ESP32)
-  #include <WiFi.h>
-#endif
-*/
 #include <WiFiNINA.h>
 
 #include "arduino_secrets.h"
