@@ -2,7 +2,7 @@
 
 Final project of Enabling Technologies for IIoT Summer School by University of Pisa, 2022.
 
-The objective is to develop a movement classification sensor on an arduino board  (using embedded ML capabilities of the hardware and expose its functionality either: 
+The objective is to develop a movement classification sensor on an arduino board  (using embedded ML capabilities of the hardware) and expose its functionality either: 
 
 - by sending the events through an MQTT topic
 - by sending events with Coap protocol (pub/sub mode)
