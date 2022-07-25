@@ -14,7 +14,7 @@ The objective is to develop a movement classification sensor on an arduino board
 
 ### Milestones:
 
-- [X] Sending the current movement status througn Mqtt topic to a broker running on my DigitalOcean virtual server
+- [X] Sending the current movement status through an Mqtt topic to a broker running on my DigitalOcean virtual server
 
     ![](./demo.PNG)
 
