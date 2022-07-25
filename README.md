@@ -12,6 +12,13 @@ The objective is to develop a movement classification sensor on an arduino board
 ### Required hardware:
 - [Arduino Nano RP2040 connect](https://docs.arduino.cc/hardware/nano-rp2040-connect)
 
+### Milestones:
+
+- [X] Sending the current movement status througn Mqtt topic to a broker running on my DigitalOcean virtual server
+
+    ![](./demo.PNG)
+
+
 ### References:
 
 - [Using the IMU Machine Learning Core Features of the Nano RP2040 Connect](https://docs.arduino.cc/tutorials/nano-rp2040-connect/rp2040-imu-advanced)
