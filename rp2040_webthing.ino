@@ -24,12 +24,8 @@
 #else
 #define DEV_I2C Wire
 #endif
-#define SerialPort Serial
 
 #define INT_1 INT_IMU
-
-//Interrupts.
-volatile int mems_event = 0;
 
 // Components
 LSM6DSOXSensor AccGyr(&DEV_I2C, LSM6DSOX_I2C_ADD_L);
@@ -38,6 +34,8 @@ LSM6DSOXSensor AccGyr(&DEV_I2C, LSM6DSOX_I2C_ADD_L);
 ucf_line_t *ProgramPointer;
 int32_t LineCounter;
 int32_t TotalNumberOfLine;
+
+volatile int mems_event = 0;
 
 void INT1Event_cb();
 void publishMqttMessage(uint8_t status);
@@ -51,12 +49,6 @@ const char broker[] = "apps.xmp.systems";
 int        port     = 1883;
 const char topic[]  = "iiot-project/test";
 
-// Time interval settings for old mqtt example
-const long interval = 1000;
-unsigned long previousMillis = 0;
-
-int count = 0;
-
 void setup() {
   /*** Initialize MLC stuff ***/
   uint8_t mlc_out[8];
@@ -67,7 +59,7 @@ void setup() {
   delay(200);
 
   // Initialize serial for output.
-  SerialPort.begin(115200);
+  Serial.begin(115200);
   
   // Initialize I2C bus.
   DEV_I2C.begin();
@@ -79,14 +71,14 @@ void setup() {
   /* Activity Recognition Default program */  
   ProgramPointer = (ucf_line_t *)lsm6dsox_activity_recognition_for_mobile;
   TotalNumberOfLine = sizeof(lsm6dsox_activity_recognition_for_mobile) / sizeof(ucf_line_t);
-  SerialPort.println("Activity Recognition for LSM6DSOX MLC");
-  SerialPort.print("UCF Number Line=");
-  SerialPort.println(TotalNumberOfLine);
+  Serial.println("Activity Recognition for LSM6DSOX MLC");
+  Serial.print("UCF Number Line=");
+  Serial.println(TotalNumberOfLine);
 
   for (LineCounter=0; LineCounter<TotalNumberOfLine; LineCounter++) {
     if(AccGyr.Write_Reg(ProgramPointer[LineCounter].address, ProgramPointer[LineCounter].data)) {
-      SerialPort.print("Error loading the Program to LSM6DSOX at line: ");
-      SerialPort.println(LineCounter);
+      Serial.print("Error loading the Program to LSM6DSOX at line: ");
+      Serial.println(LineCounter);
       while(1) {
         // Led blinking.
         digitalWrite(LED_BUILTIN, HIGH);
@@ -97,7 +89,7 @@ void setup() {
     }
   }
 
-  SerialPort.println("Program loaded inside the LSM6DSOX MLC");
+  Serial.println("Program loaded inside the LSM6DSOX MLC");
   pinMode(INT_1, INPUT);
   attachInterrupt(INT_1, INT1Event_cb, RISING);
   /* We need to wait for a time window before having the first MLC status */
@@ -156,34 +148,43 @@ void loop() {
 }
 
 void INT1Event_cb() {
+  // Interrupt to indicate MEMS event
   mems_event = 1;
 }
 
 void publishMqttMessage(uint8_t status){
-    Serial.print("Sending status ");
-    Serial.println(status);
+    bool retained = false;
+    int qos = 1;
+    bool dup = false;
 
-    mqttClient.beginMessage(topic);
+    String payload;
+    
     switch(status) {
       case 0:
-        mqttClient.print("Activity: Stationary");
+        payload = "Activity: Stationary";
         break;
       case 1:
-        mqttClient.print("Activity: Walking");
+        payload = "Activity: Walking";
         break;
       case 4:
-        mqttClient.print("Activity: Jogging");
+        payload = "Activity: Jogging";
         break;
       case 8:
-        mqttClient.print("Activity: Biking");
+        payload = "Activity: Biking";
         break;
       case 12:
-        mqttClient.print("Activity: Driving");
+        payload = "Activity: Driving";
         break;
       default:
-        mqttClient.print("Activity: Unknown");
+        payload = "Activity: Unknown";
         break;
-    }	  
+    }
+    
+    Serial.print("Sending payload - ");
+    Serial.println(payload);
+
+    mqttClient.beginMessage(topic, payload.length(), retained, qos, dup);
+    mqttClient.print(payload);	  
     mqttClient.endMessage();
 }
 
