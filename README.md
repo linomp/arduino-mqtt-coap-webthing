@@ -1,4 +1,4 @@
-# rp2040 Web Thing
+# RP2040 Web Thing
 
 Final project of Enabling Technologies for IIoT Summer School by University of Pisa, 2022.
 
@@ -10,7 +10,11 @@ The objective is to develop a movement classification sensor on an arduino board
 
 
 ### Required hardware:
-- Arduino Nano rp2040 connect
+- [Arduino Nano RP2040 connect](https://docs.arduino.cc/hardware/nano-rp2040-connect)
 
-### Relevant libraries: 
-[Starred Repositories for the IIoT Summer School Project](https://github.com/stars/linomp/lists/iiot-summer-school-project)
+### References:
+
+- [Using the IMU Machine Learning Core Features of the Nano RP2040 Connect](https://docs.arduino.cc/tutorials/nano-rp2040-connect/rp2040-imu-advanced)
+- [WebThings Framework](https://webthings.io/framework/)
+- [Coap Library for Arduino](https://www.arduino.cc/reference/en/libraries/coap-simple-library/)
+- [My starred repositories for this project](https://github.com/stars/linomp/lists/iiot-summer-school-project)
