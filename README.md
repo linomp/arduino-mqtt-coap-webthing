@@ -1,4 +1,4 @@
-# RP2040 Web Thing
+# Motion classification application on an arduino board supporting multiple IoT Protocols
 
 Final project of Enabling Technologies for IIoT Summer School by University of Pisa, 2022.
 
