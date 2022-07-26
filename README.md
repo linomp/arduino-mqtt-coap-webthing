@@ -1,8 +1,8 @@
 # Motion classification application on an arduino board supporting multiple IoT Protocols
 
-Final project of Enabling Technologies for IIoT Summer School by University of Pisa, 2022.
+Final project of the Enabling Technologies for IIoT Summer School by University of Pisa, 2022.
 
-The objective is to develop a movement classification sensor on an arduino board  (using embedded ML capabilities of the hardware) and expose its functionality either: 
+The objective is to develop a motion classification application on an arduino board  (using embedded ML capabilities of the hardware) and connect it to the external world either: 
 
 - by sending the events through an MQTT topic
 - by sending events with Coap protocol (pub/sub mode)
@@ -14,7 +14,7 @@ The objective is to develop a movement classification sensor on an arduino board
 
 ### Milestones:
 
-- [X] Sending the current movement status through an Mqtt topic to a broker running on my DigitalOcean virtual server
+- [X] Sending the current motion status through an MQTT topic to a broker running on my personal DigitalOcean cloud server
 
     ![](./demo.PNG)
 
