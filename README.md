@@ -12,6 +12,13 @@ The objective is to develop a motion classification application on an arduino bo
 ### Required hardware:
 - [Arduino Nano RP2040 connect](https://docs.arduino.cc/hardware/nano-rp2040-connect)
 
+### Required Libraries:
+- [WiFiNINA](https://www.arduino.cc/reference/en/libraries/wifinina/)
+- [STM32duino X-NUCLEO-IKS01A3](https://www.arduino.cc/reference/en/libraries/stm32duino-x-nucleo-iks01a3/3)
+- [ArduinoMqttClient](https://www.arduino.cc/reference/en/libraries/arduinomqttclient/)
+- [CoAP-simple-library](https://www.arduino.cc/reference/en/libraries/coap-simple-library/)
+
+
 ### Milestones:
 
 - [X] Sending the current motion status through an MQTT topic to a broker running on my personal DigitalOcean cloud server
