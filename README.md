@@ -16,7 +16,11 @@ The objective is to develop a motion classification application on an arduino bo
 
 - [X] Sending the current motion status through an MQTT topic to a broker running on my personal DigitalOcean cloud server
 
-    ![](./demo.PNG)
+    ![](./demoMqtt.PNG)
+
+- [X] Sending the current motion status as a CoAP PUT request to a CoAP test server running on my personal DigitalOcean cloud server
+
+    ![](./demoCoap.PNG)
 
 
 ### References:

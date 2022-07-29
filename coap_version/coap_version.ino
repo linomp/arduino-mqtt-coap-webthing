@@ -1,14 +1,21 @@
 /*
   rp2040_webthing - final project of Enabling Technologies for IIoT Summer School, 2022
-  
+
+  This version of the arduino code communicates through the CoAP protocol  
+
   Required hardware:
   - Arduino Nano rp2040 connect
 
-  Author: Lino Mediavilla
 */
 
-#include <ArduinoMqttClient.h>
+#include <SPI.h>
+#include <Dhcp.h>
+#include <Dns.h>
+#include <Ethernet.h>
+#include <EthernetUdp.h>
 #include <WiFiNINA.h>
+
+#include <coap-simple.h>
 
 #include "arduino_secrets.h"
 
@@ -38,21 +45,23 @@ int32_t TotalNumberOfLine;
 volatile int mems_event = 0;
 
 void INT1Event_cb();
-void publishMqttMessage(uint8_t status);
+void coapPutRequest(uint8_t status);
 
-// Wifi & Mqtt client configurations
+// Wifi & CoAP client configurations
 char ssid[] = SECRET_SSID;
 char pass[] = SECRET_PASS;
 WiFiClient wifiClient;
-MqttClient mqttClient(wifiClient);
-const char broker[] = "apps.xmp.systems";
-int        port     = 1883;
-const char topic[]  = "iiot-project/test";
+WiFiUDP Udp;
+Coap coap(Udp);
+
+void callback_response(CoapPacket &packet, IPAddress ip, int port);
 
 void setup() {
+
   /*** Initialize MLC stuff ***/
   uint8_t mlc_out[8];
   pinMode(LED_BUILTIN, OUTPUT);
+
   // Force INT1 of LSM6DSOX low in order to enable I2C
   pinMode(INT_1, OUTPUT);
   digitalWrite(INT_1, LOW);
@@ -67,8 +76,8 @@ void setup() {
   AccGyr.Enable_X();
   AccGyr.Enable_G();
 
-  /* Feed the program to Machine Learning Core */
-  /* Activity Recognition Default program */  
+  // Feed the program to Machine Learning Core
+  // Activity Recognition Default program
   ProgramPointer = (ucf_line_t *)lsm6dsox_activity_recognition_for_mobile;
   TotalNumberOfLine = sizeof(lsm6dsox_activity_recognition_for_mobile) / sizeof(ucf_line_t);
   Serial.println("Activity Recognition for LSM6DSOX MLC");
@@ -80,7 +89,6 @@ void setup() {
       Serial.print("Error loading the Program to LSM6DSOX at line: ");
       Serial.println(LineCounter);
       while(1) {
-        // Led blinking.
         digitalWrite(LED_BUILTIN, HIGH);
         delay(250);
         digitalWrite(LED_BUILTIN, LOW);
@@ -92,11 +100,13 @@ void setup() {
   Serial.println("Program loaded inside the LSM6DSOX MLC");
   pinMode(INT_1, INPUT);
   attachInterrupt(INT_1, INT1Event_cb, RISING);
-  /* We need to wait for a time window before having the first MLC status */
+
+  // We need to wait for a time window before having the first MLC status
   delay(3000);
   AccGyr.Get_MLC_Output(mlc_out);
  
-  /*** Initialize Wifi & Mqtt Stuff ***/
+  /*** Initialize Wifi & CoAP Stuff ***/
+
   // attempt to connect to WiFi network:
   Serial.print("Attempting to connect to WPA SSID: ");
   Serial.println(ssid);
@@ -109,32 +119,22 @@ void setup() {
   Serial.println("You're connected to the network");
   Serial.println();
 
-  // You can provide a unique client ID, if not set the library uses Arduino-millis()
-  // Each client must have a unique client ID
-  // mqttClient.setId("clientId");
-
-  Serial.print("Attempting to connect to the MQTT broker: ");
-  Serial.println(broker);
-
-  if (!mqttClient.connect(broker, port)) {
-    Serial.print("MQTT connection failed! Error code = ");
-    Serial.println(mqttClient.connectError());
-
-    while (1);
-  }
-
-  Serial.println("You're connected to the MQTT broker!");
+  Serial.print("My IP address: ");
+  Serial.print(WiFi.localIP());
   Serial.println();
 
+  // client response callback, this endpoint is single callback.
+  Serial.println("Setup Response Callback");
+  coap.response(callback_response);
+
+  // start coap server/client
+  coap.start();
+
   // Send the first status obtained 
-  publishMqttMessage(mlc_out[0]);
+  coapPutRequest(mlc_out[0]);
 }
 
 void loop() {
-  // call poll() regularly to allow the library to send MQTT keep alives which
-  // avoids being disconnected by the broker
-  mqttClient.poll();
-
   if (mems_event) {
     mems_event=0;
     LSM6DSOX_MLC_Status_t status;
@@ -142,49 +142,60 @@ void loop() {
     if (status.is_mlc1) {
       uint8_t mlc_out[8];
       AccGyr.Get_MLC_Output(mlc_out);
-      publishMqttMessage(mlc_out[0]);
+      coapPutRequest(mlc_out[0]);
     }
   }
+
+  coap.loop();
 }
 
+// Interrupt to indicate MEMS event
 void INT1Event_cb() {
-  // Interrupt to indicate MEMS event
   mems_event = 1;
 }
 
-void publishMqttMessage(uint8_t status){
-    bool retained = false;
-    int qos = 1;
-    bool dup = false;
-
+void coapPutRequest(uint8_t status){
     String payload;
     
     switch(status) {
       case 0:
-        payload = "Activity: Stationary";
+        payload = "Stationary";
         break;
       case 1:
-        payload = "Activity: Walking";
+        payload = "Walking";
         break;
       case 4:
-        payload = "Activity: Jogging";
+        payload = "Jogging";
         break;
       case 8:
-        payload = "Activity: Biking";
+        payload = "Biking";
         break;
       case 12:
-        payload = "Activity: Driving";
+        payload = "Driving";
         break;
       default:
-        payload = "Activity: Unknown";
+        payload = "Unknown";
         break;
     }
+
+    int str_len = payload.length() + 1; 
+    char payload_as_char_array[str_len];
+    payload.toCharArray(payload_as_char_array, str_len);
     
     Serial.print("Sending payload - ");
-    Serial.println(payload);
+    Serial.println(payload_as_char_array);
 
-    mqttClient.beginMessage(topic, payload.length(), retained, qos, dup);
-    mqttClient.print(payload);	  
-    mqttClient.endMessage();
+    // Predefined IP corresponds to my personal server on DigitalOcean
+    coap.put(IPAddress(165,227,107,127), 5683, "Activity", payload_as_char_array);
 }
 
+// CoAP client response callback
+void callback_response(CoapPacket &packet, IPAddress ip, int port) {
+  //Serial.println("[Coap Response]");
+
+  char p[packet.payloadlen + 1];
+  memcpy(p, packet.payload, packet.payloadlen);
+  p[packet.payloadlen] = NULL;
+
+  Serial.println(p);
+}
