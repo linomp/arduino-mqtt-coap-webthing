@@ -6,7 +6,7 @@ The objective is to develop a motion classification application on an arduino bo
 
 - by sending the events [through MQTT](./mqtt_version)
 - by sending events with the [CoAP protocol](./coap_version/)
-- by wrapping it as a "Web Thing" using the WebThings interoperability framework, and monitoring it via a WebThings gateway (available as Docker container, or installed on a Raspberry pi)
+- by wrapping it as a ["Web Thing"](./webthings_version/), and monitoring it via a WebThings gateway (available as Docker container, or installed on a Raspberry pi)
 
 
 ### Required hardware:
@@ -17,7 +17,8 @@ The objective is to develop a motion classification application on an arduino bo
 - [STM32duino X-NUCLEO-IKS01A3](https://www.arduino.cc/reference/en/libraries/stm32duino-x-nucleo-iks01a3/3)
 - [ArduinoMqttClient](https://www.arduino.cc/reference/en/libraries/arduinomqttclient/)
 - [CoAP-simple-library](https://www.arduino.cc/reference/en/libraries/coap-simple-library/)
-
+- [webthing](https://webthings.io/framework/)
+- [ArduinoMDNS](https://github.com/arduino-libraries/ArduinoMDNS)
 
 ### Milestones:
 
