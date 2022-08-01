@@ -6,11 +6,12 @@ The objective is to develop a motion classification application on an arduino bo
 
 - by sending the events [through MQTT](./mqtt_version)
 - by sending events with the [CoAP protocol](./coap_version/)
-- by wrapping it as a ["Web Thing"](./webthings_version/), and monitoring it via a WebThings gateway (available as Docker container, or installed on a Raspberry pi)
+- by wrapping it as a ["Web Thing"](./webthings_version/), and monitoring it via a WebThings Gateway running on a Raspberry Pi
 
 
-### Required hardware:
+### Required Hardware:
 - [Arduino Nano RP2040 connect](https://docs.arduino.cc/hardware/nano-rp2040-connect)
+- [Raspberry Pi for running the WebThings Gateway software](https://webthings.io/docs/gateway-getting-started-guide.html) (Optional)
 
 ### Required Libraries:
 - [WiFiNINA](https://www.arduino.cc/reference/en/libraries/wifinina/)
@@ -20,20 +21,24 @@ The objective is to develop a motion classification application on an arduino bo
 - [webthing](https://webthings.io/framework/)
 - [ArduinoMDNS](https://github.com/arduino-libraries/ArduinoMDNS)
 
+### Full Setup:
+
+![](./img/setup.jpg)
+
 ### Milestones:
 
 - [X] Sending the current motion status through an MQTT topic to a broker running on my personal DigitalOcean cloud server
 
-    ![](./demoMqtt.PNG)
+    ![](./img/demoMqtt.PNG)
 
 - [X] Sending the current motion status as a CoAP PUT request to a CoAP test server running on my personal DigitalOcean cloud server
 
-    ![](./demoCoap.PNG)
+    ![](./img/demoCoap.PNG)
 
 - [X] Sending the current motion status to a WebThings gateway running on a Raspberry Pi on the local network
 
-    ![](./dashboard.PNG)
-    ![](./logs.PNG)
+    ![](./img/dashboard.PNG)
+    ![](./img/logs.PNG)
 
 
 ### References:
