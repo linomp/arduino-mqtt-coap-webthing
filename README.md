@@ -30,10 +30,16 @@ The objective is to develop a motion classification application on an arduino bo
 
     ![](./demoCoap.PNG)
 
+- [X] Sending the current motion status to a WebThings gateway running on a Raspberry Pi on the local network
+
+    ![](./dashboard.PNG)
+    ![](./logs.PNG)
+
 
 ### References:
 
 - [Using the IMU Machine Learning Core Features of the Nano RP2040 Connect](https://docs.arduino.cc/tutorials/nano-rp2040-connect/rp2040-imu-advanced)
 - [Article about Coap by Adafruit](https://learn.adafruit.com/alltheiot-protocols/coap)
 - [WebThings Framework](https://webthings.io/framework/)
+- [Shawn Hymel's tutorial on WebThings Framework](https://www.youtube.com/watch?v=papxaeII0vo)
 - [My starred repositories for this project](https://github.com/stars/linomp/lists/iiot-summer-school-project)

@@ -8,7 +8,13 @@
   
 */
 
-#include <WiFiNINA.h>
+#define LARGE_JSON_BUFFERS 1
+
+#include <Arduino.h>
+#include "Thing.h"
+
+#define ARDUINO_SAMD_NANO_33_IOT
+#include "WebThingAdapter.h"
 
 #include "arduino_secrets.h"
 
@@ -27,10 +33,12 @@
 
 #define INT_1 INT_IMU
 
-// Components
+/* Components */
+
 LSM6DSOXSensor AccGyr(&DEV_I2C, LSM6DSOX_I2C_ADD_L);
 
-// MLC
+/* MLC */
+
 ucf_line_t *ProgramPointer;
 int32_t LineCounter;
 int32_t TotalNumberOfLine;
@@ -38,16 +46,32 @@ int32_t TotalNumberOfLine;
 volatile int mems_event = 0;
 
 void INT1Event_cb();
-void publishMqttMessage(uint8_t status);
+void setMovementProp(uint8_t status);
 
-// Wifi & Mqtt client configurations
+/* WebThingAdapter configurations */
+
 char ssid[] = SECRET_SSID;
-char pass[] = SECRET_PASS;
-WiFiClient wifiClient;
-MqttClient mqttClient(wifiClient);
-const char broker[] = "apps.xmp.systems";
-int        port     = 1883;
-const char topic[]  = "iiot-project/test";
+char password[] = SECRET_PASS;
+
+WebThingAdapter *adapter;
+
+const char *sensorTypes[] = {nullptr};
+ThingDevice activitySensor("activity-sensor-1", "Arduino Activity Sensor", sensorTypes);
+ThingProperty stationary("stationary", "stationary", BOOLEAN, "OnOffProperty");
+ThingProperty walking("walking", "walking", BOOLEAN, "OnOffProperty");
+ThingProperty jogging("jogging", "jogging", BOOLEAN, "OnOffProperty");
+ThingProperty biking("biking", "biking", BOOLEAN, "OnOffProperty");
+ThingProperty driving("driving", "driving", BOOLEAN, "OnOffProperty");
+ThingProperty unknown("unknown", "unknown", BOOLEAN, "OnOffProperty");
+
+
+#if defined(LED_BUILTIN)
+const int ledPin = LED_BUILTIN;
+#else
+const int ledPin = 13;
+#endif
+
+bool lastOn = false;
 
 void setup() {
 
@@ -61,7 +85,7 @@ void setup() {
   delay(200);
 
   // Initialize serial for output.
-  Serial.begin(115200);
+  Serial.begin(9600);
   
   // Initialize I2C bus.
   DEV_I2C.begin();
@@ -98,99 +122,166 @@ void setup() {
   delay(3000);
   AccGyr.Get_MLC_Output(mlc_out);
  
-  /*** Initialize Wifi & Mqtt Stuff ***/
+  /*** Initialize WebThingAdapter stuff ***/
 
-  // attempt to connect to WiFi network:
-  Serial.print("Attempting to connect to WPA SSID: ");
-  Serial.println(ssid);
-  while (WiFi.begin(ssid, pass) != WL_CONNECTED) {
-    // failed, retry
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW);
+  Serial.begin(115200);
+  Serial.println("");
+  Serial.print("Connecting to \"");
+  Serial.print(ssid);
+  Serial.println("\"");
+
+  WiFi.begin(ssid, password);
+  Serial.println("");
+
+  // Wait for connection
+  bool blink = true;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
     Serial.print(".");
-    delay(5000);
+    digitalWrite(ledPin, blink ? LOW : HIGH); // active low led
+    blink = !blink;
   }
+  digitalWrite(ledPin, LOW); // active low led
 
-  Serial.println("You're connected to the network");
-  Serial.println();
+  Serial.println("");
+  Serial.print("Connected to ");
+  Serial.println(ssid);
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  adapter = new WebThingAdapter("w25", WiFi.localIP());
 
-  // You can provide a unique client ID, if not set the library uses Arduino-millis()
-  // Each client must have a unique client ID
-  // mqttClient.setId("clientId");
+  activitySensor.description = "A motion classifier sensor powered by the Arduino rp2040's ML Core";
 
-  Serial.print("Attempting to connect to the MQTT broker: ");
-  Serial.println(broker);
 
-  if (!mqttClient.connect(broker, port)) {
-    Serial.print("MQTT connection failed! Error code = ");
-    Serial.println(mqttClient.connectError());
+  stationary.title = "stationary";
+  stationary.readOnly = "true";
 
-    while (1);
-  }
+  walking.title = "walking";
+  walking.readOnly = "true";
 
-  Serial.println("You're connected to the MQTT broker!");
-  Serial.println();
+  jogging.title = "jogging";
+  jogging.readOnly = "true";
+
+  biking.title = "biking";
+  biking.readOnly = "true";
+
+  driving.title = "driving";
+  driving.readOnly = "true";
+
+  unknown.title = "unknown";
+  unknown.readOnly = "true";
+
+  activitySensor.addProperty(&stationary);
+  activitySensor.addProperty(&walking);
+  activitySensor.addProperty(&jogging);
+  activitySensor.addProperty(&biking);
+  activitySensor.addProperty(&driving);
+  activitySensor.addProperty(&unknown);
+
+  adapter->addDevice(&activitySensor);
+  adapter->begin();
+
+  Serial.println("HTTP server started");
+
+  Serial.print("http://");
+  Serial.print(WiFi.localIP());
+  Serial.print("/things/");
+  Serial.println(activitySensor.id);
 
   // Send the first status obtained 
-  publishMqttMessage(mlc_out[0]);
+  setMovementProp(mlc_out[0]);
+  adapter->update();
 }
 
-void loop() {
-
-  // call poll() regularly to allow the library to send MQTT keep alives which
-  // avoids being disconnected by the broker
-  mqttClient.poll();
+void loop() {  
+  adapter->update();
 
   if (mems_event) {
+    resetPropertyValues();
+    adapter->update();
     mems_event=0;
     LSM6DSOX_MLC_Status_t status;
     AccGyr.Get_MLC_Status(&status);
     if (status.is_mlc1) {
       uint8_t mlc_out[8];
       AccGyr.Get_MLC_Output(mlc_out);
-      publishMqttMessage(mlc_out[0]);
+      setMovementProp(mlc_out[0]);      
     }
   }
 }
 
 void INT1Event_cb() {
-
   // Interrupt to indicate MEMS event
   mems_event = 1;
-
 }
 
-void publishMqttMessage(uint8_t status){
-    bool retained = false;
-    int qos = 1;
-    bool dup = false;
+void resetPropertyValues(){
+    ThingPropertyValue defaultVal;
+    defaultVal.boolean = false;
 
-    String payload = "Activity: ";
+    stationary.setValue(defaultVal);
+    walking.setValue(defaultVal);
+    jogging.setValue(defaultVal);
+    biking.setValue(defaultVal);
+    driving.setValue(defaultVal);
+    unknown.setValue(defaultVal);
+}
+
+void setMovementProp(uint8_t status){
+    ThingPropertyValue stationaryVal;
+    stationaryVal.boolean = (status==0);
+    stationary.setValue(stationaryVal);
+
+    ThingPropertyValue walkingVal;
+    walkingVal.boolean = (status==1);
+    walking.setValue(walkingVal);
+
+    ThingPropertyValue joggingVal;
+    joggingVal.boolean = (status==4);
+    jogging.setValue(joggingVal);
+
+    ThingPropertyValue bikingVal;
+    bikingVal.boolean = (status==8);
+    biking.setValue(bikingVal);
+
+    ThingPropertyValue drivingVal;
+    drivingVal.boolean = (status==12);
+    driving.setValue(drivingVal);
+
+    ThingPropertyValue unknownVal;
+    unknownVal.boolean = !(stationaryVal.boolean || walkingVal.boolean || joggingVal.boolean || bikingVal.boolean || drivingVal.boolean);
+    unknown.setValue(unknownVal);
+
+    formatForSerialDebugging(status);
+}
+
+void formatForSerialDebugging(uint8_t status){
+    String payload;
     
     switch(status) {
       case 0:
-        payload += "Stationary";
+        payload = "Stationary";
         break;
       case 1:
-        payload += "Walking";
+        payload = "Walking";
         break;
       case 4:
-        payload += "Jogging";
+        payload = "Jogging";
         break;
       case 8:
-        payload += "Biking";
+        payload = "Biking";
         break;
       case 12:
-        payload += "Driving";
+        payload = "Driving";
         break;
       default:
-        payload += "Unknown";
+        payload = "Unknown";
         break;
     }
-    
+
     Serial.print("Sending payload - ");
     Serial.println(payload);
-
-    mqttClient.beginMessage(topic, payload.length(), retained, qos, dup);
-    mqttClient.print(payload);	  
-    mqttClient.endMessage();
 }
 
