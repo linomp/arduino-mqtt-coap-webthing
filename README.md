@@ -1,6 +1,6 @@
 # Motion classification application on an Arduino board supporting multiple IoT Protocols
 
-Final project of the Enabling Technologies for IIoT Summer School by University of Pisa, 2022.
+Final project of the Summer School on Enabling Technologies for IIoT by University of Pisa, 2022.
 
 The objective is to develop a motion classification application on an arduino board  (using embedded ML capabilities of the hardware) and connect it to the external world either: 
 
