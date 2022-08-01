@@ -21,7 +21,7 @@ The objective is to develop a motion classification application on an arduino bo
 - [webthing](https://webthings.io/framework/)
 - [ArduinoMDNS](https://github.com/arduino-libraries/ArduinoMDNS)
 
-### Full Setup:
+### Setup:
 
 ![](./img/setup.jpg)
 
