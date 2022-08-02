@@ -1,4 +1,4 @@
-# Motion classification application on an Arduino board supporting multiple IoT Protocols
+# Motion classification application on an Arduino board supporting multiple IoT protocols
 
 Final project of the Summer School on Enabling Technologies for IIoT by University of Pisa, 2022.
 
