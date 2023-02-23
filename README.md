@@ -25,7 +25,7 @@ It was my final project at the Summer School on Enabling Technologies for IIoT b
 
 <img src="./img/setup.jpg" width="50%">
 
-## Features:
+## Features
 
 - Send the current motion status through an MQTT topic to a broker running on a cloud server. [(See source code)](https://github.com/linomp/rp2040-webthing/blob/main/mqtt_version/mqtt_version.ino)
 
