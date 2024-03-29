@@ -6,7 +6,7 @@ This is a motion classification application for an arduino board  (using embedde
 - by sending events with the [CoAP protocol](./coap_version/)
 - by declaring a ["Web Thing"](./webthings_version/) interface, allowing to monitor it via a WebThings Gateway running on a Raspberry Pi
 
-It was my final project at the Summer School on Enabling Technologies for IIoT by University of Pisa, 2022.
+It was my final project at the Summer School on Enabling Technologies for IIoT by University of Pisa, 2022. Check the full 5-page report [here](https://github.com/linomp/arduino-mqtt-coap-webthing/blob/main/Final%20Report.pdf).
 
 ## Requirements
 ### Hardware:
